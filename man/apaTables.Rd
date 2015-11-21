@@ -17,8 +17,8 @@ A common task faced by researchers is the creation of APA style (i.e., \emph{Ame
 \tabular{ll}{
 Package: \tab apaTables\cr
 Type: \tab Package\cr
-Version: \tab 1.0.3\cr
-Date: \tab 2015-08-27\cr
+Version: \tab 1.0.4\cr
+Date: \tab 2015-011-20\cr
 License: \tab Unlimited\cr
 }
 }

@@ -9,8 +9,8 @@
 #'\tabular{ll}{
 #'Package: \tab apaTables\cr
 #'Type: \tab Package\cr
-#'Version: \tab 1.0.3\cr
-#'Date: \tab 2015-08-27\cr
+#'Version: \tab 1.0.4\cr
+#'Date: \tab 2015-011-20\cr
 #'License: \tab Unlimited\cr
 #'}
 #'
@@ -34,10 +34,16 @@ NULL
 strip.leading.zero <- function(string.in) {
      string.out = string.in
      id.r.is.one <- string.in == "1.00"
+     id.r.is.mone <- string.in == "-1.00"
      string.out <- sub(pattern="0.",replacement=".",x=string.in)
      string.out[id.r.is.one] <- "1.00"
+     string.out[id.r.is.mone] <- "-1.00"
      return(string.out)
 }
+
+
+
+
 
 add.sig.stars <- function(string.in,p.values.in) {
      string.out <- string.in

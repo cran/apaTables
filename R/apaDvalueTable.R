@@ -171,9 +171,9 @@ apa.d.table <- function(iv, dv, data, filename=NA, table.number=NA,show.conf.int
      
      #make console output
      if (show.conf.interval==TRUE) {
-          table.note <- "Note. * indicates p < .05; ** indicates p < .01.\nM and SD are used to represent mean and standard deviation, respectively.\nValues in square brackets indicate the 95% confidence interval for each d-value. The confidence interval is a plausible range of population d-values that could have caused the sample d-value (Cumming, 2014). d-values are unbiased estimates calculated using formulas 4.18 and 4.19 from Borenstein, Hedges, Higgins, & Rothstein (2009). d-values not calculated if unequal variances prevented pooling.\n"
+          table.note <- "Note. * indicates p < .05; ** indicates p < .01.\nM and SD are used to represent mean and standard deviation, respectively.\nValues in square brackets indicate the 95% confidence interval for each d-value. \nThe confidence interval is a plausible range of population d-values \nthat could have caused the sample d-value (Cumming, 2014). \nd-values are unbiased estimates calculated using formulas 4.18 and 4.19 \nfrom Borenstein, Hedges, Higgins, & Rothstein (2009). \nd-values not calculated if unequal variances prevented pooling.\n"
      } else {
-          table.note <- "Note. * indicates p < .05; ** indicates p < .01.\nM and SD are used to represent mean and standard deviation, respectively. d-values are unbiased estimates calculated using formulas 4.18 and 4.19 from Borenstein, Hedges, Higgins, & Rothstein (2009). d-values not calculated if unequal variances prevented pooling.\n"
+          table.note <- "Note. * indicates p < .05; ** indicates p < .01.\nM and SD are used to represent mean and standard deviation, respectively.\nd-values are unbiased estimates calculated using formulas 4.18 and 4.19 \nfrom Borenstein, Hedges, Higgins, & Rothstein (2009). \nd-values not calculated if unequal variances prevented pooling.\n"
      }
      tbl.console <- list(table.number = table.number,
                          table.title = table.title,
@@ -248,7 +248,7 @@ get.d.value <- function(group1.data,group2.data) {
      v2 <- var(group2.data)
      n1 <- length(group1.data)
      n2 <- length(group2.data)
-     sp <- sqrt((v1*(n1-1) + n2*(n2-1))/(n1+n2-2))
+     sp <- sqrt((v1*(n1-1) + v2*(n2-1))/(n1+n2-2))
      d.out <- (m1-m2)/sp
      d.out <- abs(d.out)
      return(d.out)     

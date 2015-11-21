@@ -83,13 +83,13 @@ apa.2way.table <- function(iv1, iv2, dv, data, filename=NA, table.number=NA,show
      #make table notes console and rtf
      if ((show.marginal.means==TRUE) & (show.conf.interval==FALSE)) {
           table.note <- "{\\i M} and {\\i SD} represent mean and standard deviation, respectively. Marginal indicates the means and standard deviations pertaining to main effects."
-          table.note.txt <- "Note. M and SD represent mean and standard deviation, respectively. Marginal indicates the means and standard deviations pertaining to main effects."
+          table.note.txt <- "Note. M and SD represent mean and standard deviation, respectively. \nMarginal indicates the means and standard deviations pertaining to main effects."
      } else {
           table.note <- "{\\i M} and {\\i SD} represent mean and standard deviation, respectively."
           table.note.txt <- "Note. M and SD represent mean and standard deviation, respectively."
      }
      if (show.conf.interval==TRUE) {
-          ci.txt <- "LL and UL indicate the lower and upper limits of the 95% confidence interval for the mean, respectively. The confidence interval is a plausible range of population means that could have created a sample mean (Cumming, 2014)."
+          ci.txt <- "\nLL and UL indicate the lower and upper limits of the \n95% confidence interval for the mean, respectively. \nThe confidence interval is a plausible range of population means \nthat could have created a sample mean (Cumming, 2014)."
           table.note.txt <- paste(table.note.txt,ci.txt)
      }
      

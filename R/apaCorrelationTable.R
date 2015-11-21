@@ -134,7 +134,7 @@ apa.cor.table<-function(data,filename=NA,table.number=NA, show.conf.interval=TRU
      
      #make console output
      if (show.conf.interval==TRUE) {
-          table.note <- "Note. * indicates p < .05; ** indicates p < .01.\nM and SD are used to represent mean and standard deviation, respectively.\nValues in square brackets indicate the 95% confidence interval for each correlation.\nThe confidence interval is a plausible range of population correlations that could have caused the sample correlation (Cumming, 2014).\n"
+          table.note <- "Note. * indicates p < .05; ** indicates p < .01.\nM and SD are used to represent mean and standard deviation, respectively.\nValues in square brackets indicate the 95% confidence interval for each correlation.\nThe confidence interval is a plausible range of population correlations \nthat could have caused the sample correlation (Cumming, 2014).\n"
      } else {
           table.note <- "Note. * indicates p < .05; ** indicates p < .01.\nM and SD are used to represent mean and standard deviation, respectively.\n"
      }

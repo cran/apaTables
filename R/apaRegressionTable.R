@@ -9,16 +9,30 @@
 #' head(album)
 #'
 #' # Single block example
-#' block1 <- lm(sales ~ adverts + airplay, data=album)
-#' apa.reg.table(block1)
-#' apa.reg.table(block1,filename="exRegTable.doc")
+#' blk1 <- lm(sales ~ adverts + airplay, data=album)
+#' apa.reg.table(blk1)
+#' apa.reg.table(blk1,filename="exRegTable.doc")
 #' 
-#' # Two block example
-#' block1 <- lm(sales ~ adverts, data=album)
-#' block2 <- lm(sales ~ adverts + airplay + attract, data=album)
-#' apa.reg.table(block1,block2,filename="exRegBlocksTable.doc")
+#' # Two block example, more than two blocks can be used
+#' blk1 <- lm(sales ~ adverts, data=album)
+#' blk2 <- lm(sales ~ adverts + airplay + attract, data=album)
+#' apa.reg.table(blk1,blk2,filename="exRegBlocksTable.doc")
 #' 
-#' # More than two blocks can be used if desired
+#' # Interaction product-term test with blocks
+#' blk1 <- lm(sales ~ adverts + airplay, data=album)
+#' blk2 <- lm(sales ~ adverts + airplay + I(adverts * airplay), data=album)
+#' apa.reg.table(blk1,blk2,filename="exInteraction1.doc")
+#' 
+#' # Interaction product-term test with blocks and additional product terms
+#' blk1<-lm(sales ~ adverts + airplay, data=album)
+#' blk2<-lm(sales ~ adverts + airplay + I(adverts*adverts) + I(airplay*airplay), data=album)
+#' blk3<-lm(sales~adverts+airplay+I(adverts*adverts)+I(airplay*airplay)+I(adverts*airplay),data=album)
+#' apa.reg.table(blk1,blk2,blk3,filename="exInteraction2.doc")
+#' 
+#' # Interaction product-term test with single regression (i.e., semi-partial correlation focus)
+#' blk1 <- lm(sales ~ adverts + airplay + I(adverts * airplay), data=album)
+#' apa.reg.table(blk1,filename="exInteraction3.doc")
+#' 
 #' @export
 apa.reg.table<-function(...,filename=NA,table.number=NA) {
      regression.results.list <- list(...)
@@ -118,7 +132,7 @@ apa.reg.table<-function(...,filename=NA,table.number=NA) {
      #console table
      table.title <- sprintf("Regression results using %s as the criterion\n",first.criterion)
      table.body <- blockout.txt
-     table.note <- "Note. * indicates p < .05; ** indicates p < .01.\nA significant b-weight indicates the beta-weight and semi-partial correlation are also significant.\nb represents unstandardized regression weights; SE represents the standard error of the unstandardized regression weights; beta indicates the beta-weights or standardized regression weights; sr2 represents the semi-partial correlation squared;r represents the zero-order correlation.\n"
+     table.note <- "Note. * indicates p < .05; ** indicates p < .01.\nA significant b-weight indicates the beta-weight and semi-partial correlation are also significant.\nb represents unstandardized regression weights; SE represents the standard error of the \nunstandardized regression weights; beta indicates the beta-weights or standardized regression weights; \nsr2 represents the semi-partial correlation squared;r represents the zero-order correlation.\n"
      tbl.console <- list(table.number = table.number,
                          table.title = table.title,
                          table.body = table.body,
@@ -188,14 +202,12 @@ apa.single.block<-function(regression.results) {
      names(beta.values) <- predictor.names
      beta.values<-c(0,beta.values) #placeholder 0 for intercept
      
-     #sr2<-getDeltaRsquare(regResults) #rockchalk
-     temp.file.name <- "apa_table_tmp.txt"
-     capture.output(sr2<-rockchalk::getDeltaRsquare(regression.results),file=temp.file.name)
-     unlink(temp.file.name)
-     sr2<-c(0,sr2) #placeholder 0 for intercept
-     
-     #delete file here "temp.txt"
-     
+     #get sr-squared Version 2
+     tsq <- t.values^2
+     R2 <- summary(regression.results)$r.squared
+     df2 <- summary(regression.results)$fstatistic[3]
+     sr2 <- tsq*(1-R2)/df2
+
      #get zero-order correlations
      regression.data <-regression.results$model #get raw data from regression
      my.criterion <- regression.data[,1]
@@ -221,12 +233,19 @@ apa.single.block<-function(regression.results) {
      model.summary.txt$cor.values <- strip.leading.zero(model.summary.txt$cor.values)
      model.summary.txt$cor.values <- add.sig.stars(string.in = model.summary.txt$cor.values, p.values.in = r.p.values)
      
+     #Remove correlations for product terms
+     cor.values <- model.summary.txt$cor.values
+     product.row.numbers <- is.product.row(predictor.names.intercept)
+     cor.values[product.row.numbers] <- ""
+     model.summary.txt$cor.values <- cor.values
+
      model.summary.txt$sr2 <- strip.leading.zero(model.summary.txt$sr2)
      model.summary.txt$b.values   <- add.sig.stars(string.in = model.summary.txt$b.values, p.values.in = p.values)
 
      
      
-
+     
+     
      #add needed blank rows and columns
      blank.column <- rep(" ",length(model.summary.txt$b.values))
      fit <- blank.column
@@ -338,6 +357,10 @@ model.prep.print <- function(model.in=NA, model.number=1,past.model.diff=NA, rtf
      return(model.in.summary)
 }
 
+
+is.product.row <- function(row_names) {
+     return(grep("I\\(",row_names))
+}
 
 
 

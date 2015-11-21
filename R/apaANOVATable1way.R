@@ -46,7 +46,7 @@ apa.1way.table <- function(iv, dv, data,filename=NA, table.number=NA, show.conf.
      
      if (is.iv==FALSE) {
           cat("apa.mean.table error:\n")
-          cat("Two valid independent variables (iv's) must be specified.\n\n")
+          cat("A valid independent variables (iv) must be specified.\n\n")
           return(FALSE)
      }
      
@@ -129,10 +129,10 @@ one.way.table.console.and.rtf <- function(iv,dv,iv.name, dv.name, show.conf.inte
      #make console output
      table.title <- sprintf("Descriptive statistics for %s as a function of %s. ",dv.name,iv.name)
      table.body <- table.out
-     table.note <- "Note. M and SD represent mean and standard deviation, respectively."
+     table.note <- "Note. M and SD represent mean and standard deviation, respectively.\n"
      if (show.conf.interval==TRUE) {
-          ci.txt <- "LL and UL indicate the lower and upper limits of the 95% confidence interval for the mean, respectively. The confidence interval is a plausible range of population means that could have caused a sample mean (Cumming, 2014)."
-          table.note <- paste(table.note,ci.txt)
+          ci.txt <- "LL and UL indicate the lower and upper limits of the 95% confidence interval \nfor the mean, respectively. \nThe confidence interval is a plausible range of population means that could \nhave caused a sample mean (Cumming, 2014)."
+          table.note <- paste(table.note,ci.txt,sep="")
      }
      tbl.console <- list()
      tbl.console <- list(table.number = table.number,
