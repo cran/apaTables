@@ -6,7 +6,7 @@
 \usage{
 apa.2way.table(iv1, iv2, dv, data, filename = NA, table.number = NA,
   show.conf.interval = FALSE, show.marginal.means = FALSE,
-  landscape = FALSE)
+  landscape = TRUE)
 }
 \arguments{
 \item{iv1}{Name of independent variable 1 column in data frame}
@@ -40,4 +40,3 @@ apa.2way.table(iv1=a,iv2=b,dv=dv,data=fidler_thompson,landscape=TRUE, filename="
 # Example 3: 2-way from Field et al. (2012) Discovery Statistics Using R
 apa.2way.table(iv1=gender,iv2=alcohol,dv=attractiveness,data=goggles,filename="ex3_desc_table.doc")
 }
-

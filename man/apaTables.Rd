@@ -24,8 +24,8 @@ Currently, the following tables can be created:
 \tabular{ll}{
 Package: \tab apaTables\cr
 Type: \tab Package\cr
-Version: \tab 1.5.0\cr
-Date: \tab 2017-03-25\cr
+Version: \tab 1.5.1\cr
+Date: \tab 2017-06-20\cr
 License: \tab MIT\cr
 }
 }
@@ -35,4 +35,3 @@ Author: \tab David J. Stanley \email{dstanley@uoguelph.ca}\cr
 Maintainer: \tab David J. Stanley \email{dstanley@uoguelph.ca}
 }
 }
-
