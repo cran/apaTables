@@ -1,12 +1,16 @@
 #' Creates a regresion table in APA style
 #' @param ... Regression (i.e., lm) result objects. Typically, one for each block in the regression.
 #' @param filename (optional) Output filename document filename (must end in .rtf or .doc only)
+#' @param prop.var.conf.level Level of confidence (.90 or .95, default .95) for interval around sr2, R2, and Delta R2. Use of .90 confidence level helps to create consistency between the CI overlapping with zero and conclusions based on the p-value for that block (or block difference).
 #' @param table.number  Integer to use in table number output line
 #' @return APA table object
 #' @references
 #' sr2 and delta R2 confidence intervals calculated via:
 #'
 #' Alf Jr, E. F., & Graf, R. G. (1999). Asymptotic confidence limits for the difference between two squared multiple correlations: A simplified approach. Psychological Methods, 4(1), 70.
+#'
+#' Note that Algina, Keselman, & Penfield (2008) found this approach can under some circumstances lead to inaccurate CIs on proportion of variance values.
+#' You might consider using the Algina, Keselman, & Penfield (2008) approach via the apa.reg.boot.table function
 #'
 #' @examples
 #' # View top few rows of goggles data set
@@ -39,7 +43,7 @@
 #' apa.reg.table(blk1,filename="exInteraction3.doc")
 #'
 #' @export
-apa.reg.table<-function(...,filename=NA,table.number=NA) {
+apa.reg.table<-function(...,filename=NA,table.number=NA, prop.var.conf.level = .95) {
      regression_results_list <- list(...)
 
      table_number <- table.number
@@ -50,6 +54,14 @@ apa.reg.table<-function(...,filename=NA,table.number=NA) {
      } else {
           make_file_flag=TRUE
      }
+
+     if (prop.var.conf.level == .90) {
+          prop_var_conf_level <- .90
+     } else {
+          prop_var_conf_level <- .95
+     }
+
+
 
      L=length(regression_results_list)
      is_same_criterion <- c()
@@ -98,7 +110,7 @@ apa.reg.table<-function(...,filename=NA,table.number=NA) {
      block_results <- list()
      L <- length(regression_results_list)
      for (i in 1:L) {
-          cur_result <- apa_single_block(regression_results_list[[i]],is_random_predictors)
+          cur_result <- apa_single_block(regression_results_list[[i]],is_random_predictors, prop_var_conf_level)
           block_results[[i]] <- cur_result
      }
 
@@ -126,7 +138,7 @@ apa.reg.table<-function(...,filename=NA,table.number=NA) {
                cur_block_out_txt <- block_results[[i]]$model_details_txt
                cur_block_out_rtf <- block_results[[i]]$model_details_rtf
 
-               delta_R2_details <- get_delta_R2_blocks(blk2=cur_block_lm,blk1=last_block_lm,summary2=cur_block_summary,summary1=last_block_summary,n)
+               delta_R2_details <- get_delta_R2_blocks(blk2=cur_block_lm,blk1=last_block_lm,summary2=cur_block_summary,summary1=last_block_summary,n, prop_var_conf_level = prop_var_conf_level)
 
                num_lines <- dim(cur_block_out_txt)[1]
                cur_block_out_txt$difference[num_lines-2] <- delta_R2_details$deltaR2_txt
@@ -152,7 +164,14 @@ apa.reg.table<-function(...,filename=NA,table.number=NA) {
 
      #console table
      table_title <- sprintf("Regression results using %s as the criterion\n",first_criterion)
-     names(block_out_txt) <- get_txt_column_names(block_out_txt)
+     txt_column_names <- get_txt_column_names(block_out_txt)
+     if (prop_var_conf_level == .95) {
+          txt_column_names <- sub("XX","95",txt_column_names)
+     } else {
+          txt_column_names <- sub("XX","90",txt_column_names)
+     }
+     names(block_out_txt) <- txt_column_names
+
      table_body <- block_out_txt
 
      table_note <- get_reg_table_note_txt(first_block_calculate_cor, first_block_calculate_beta)
@@ -179,7 +198,16 @@ apa.reg.table<-function(...,filename=NA,table.number=NA) {
           colwidths <- get_rtf_column_widths(block_out_rtf)
 
           regression_table <- as.matrix(block_out_rtf)
-          new_col_names <- get_rtf_column_names(block_out_rtf)
+
+          rtf_column_names <- get_rtf_column_names(block_out_rtf)
+          if (prop_var_conf_level == .95) {
+               rtf_column_names <- sub("XX","95",rtf_column_names)
+          } else {
+               rtf_column_names <- sub("XX","90",rtf_column_names)
+          }
+          new_col_names <- rtf_column_names
+
+
           colnames(regression_table) <- new_col_names
 
 
@@ -204,7 +232,7 @@ apa.reg.table<-function(...,filename=NA,table.number=NA) {
 }
 
 
-apa_single_block<-function(cur_blk,is_random_predictors) {
+apa_single_block<-function(cur_blk,is_random_predictors, prop_var_conf_level) {
      #Regression data
      reg_table_data <- cur_blk$model
      n              <- dim(reg_table_data)[1]
@@ -243,23 +271,33 @@ apa_single_block<-function(cur_blk,is_random_predictors) {
      df1         <- model_summary_extended$df
      df2         <- model_summary_extended$df.residual
 
-     R2CI <- MBESS::ci.R2(R2=R2,df.1=df1,df.2=df2,Random.Predictors = is_random_predictors)
-     R2LL <- R2CI$Lower.Conf.Limit.R2
-     R2UL <- R2CI$Upper.Conf.Limit.R2
+     prop_var_conf_level_str <- sprintf("%g", round(prop_var_conf_level*100))
+
+     if (requireNamespace("MBESS", quietly = TRUE)) {
+          R2CI <- MBESS::ci.R2(R2=R2,df.1=df1,df.2=df2,Random.Predictors = is_random_predictors, conf.level = prop_var_conf_level)
+          R2LL <- R2CI$Lower.Conf.Limit.R2
+          R2UL <- R2CI$Upper.Conf.Limit.R2
+     } else {
+          R2LL <- NA
+          R2UL <- NA
+          cat("\nMBESS package needs to be installed to calculate R2 confidence intervals.\n")
+     }
+
+
 
      R2_txt     <- strip.leading.zero(add.sig.stars(sprintf("%1.3f",R2),R2_pvalue))
      R2LL_txt   <- strip.leading.zero(sprintf("%1.2f",R2LL))
      R2UL_txt   <- strip.leading.zero(sprintf("%1.2f",R2UL))
 
      model_summary_txt    <- sprintf("R2 = %s",R2_txt)
-     model_summary_CI_txt <- sprintf("95%% CI[%s,%s]",R2LL_txt,R2UL_txt)
+     model_summary_CI_txt <- sprintf("%s%% CI[%s,%s]",prop_var_conf_level_str, R2LL_txt,R2UL_txt)
 
      model_summary_rtf    <- sprintf("{\\i R\\super 2 \\nosupersub}  = %s",R2_txt)
-     model_summary_CI_rtf <- sprintf("95%% CI[%s,%s]",R2LL_txt,R2UL_txt)
+     model_summary_CI_rtf <- sprintf("%s%% CI[%s,%s]",prop_var_conf_level_str, R2LL_txt,R2UL_txt)
 
 
      #Add b-weight CI's
-     b_CI <- confint(cur_blk)
+     b_CI <- confint(cur_blk) #uses .95 confidence by default
      LLb  <- b_CI[,c("2.5 %")]
      ULb  <- b_CI[,c("97.5 %")]
 
@@ -284,7 +322,7 @@ apa_single_block<-function(cur_blk,is_random_predictors) {
           #use delta R2 process for CI
           for (i in 1:number_predictors) {
                sr2 <- reg_table_lower$sr2[i]
-               ci  <- get_sr2_ci(sr2=sr2,R2=R2,n=n)
+               ci  <- get_sr2_ci(sr2 = sr2, R2 = R2, n = n, conf_level = prop_var_conf_level)
                LL  <- ci$LL
                UL  <- ci$UL
                reg_table_lower$LLsr2[i] <- LL
@@ -439,7 +477,7 @@ output_txt_name <- function(column_name) {
             beta = "beta",
             beta_CI ="beta_95%_CI",
             sr2="sr2",
-            sr2_CI ="sr2_95%_CI",
+            sr2_CI ="sr2_XX%_CI",
             r="r",
             summary="Fit",
             difference="Difference")
@@ -462,7 +500,7 @@ output_rtf_name <- function(column_name) {
             beta = "{\\i beta}",
             beta_CI ="{{\\i beta}\\par}{95% CI\\par}[LL, UL]",
             sr2="{\\i sr\\super 2 \\nosupersub}",
-            sr2_CI ="{{{\\i sr\\super 2 \\nosupersub}\\par}95% CI\\par}[LL, UL]",
+            sr2_CI ="{{{\\i sr\\super 2 \\nosupersub}\\par}XX% CI\\par}[LL, UL]",
             r="{\\i r}",
             summary="Fit",
             difference="Difference")
@@ -510,17 +548,17 @@ get_rtf_column_widths <- function(df) {
 get_reg_table_note_txt <- function(calculate_cor,calculate_beta) {
      if (calculate_cor==TRUE & calculate_beta==TRUE) {
 
-          table_note <- "Note. * indicates p < .05; ** indicates p < .01.\nA significant b-weight indicates the beta-weight and semi-partial correlation are also significant.\nb represents unstandardized regression weights; beta indicates the standardized regression weights; \nsr2 represents the semi-partial correlation squared; r represents the zero-order correlation.\nSquare brackets are used to enclose the lower and upper limits of a confidence interval.\n"
+          table_note <- "Note. A significant b-weight indicates the beta-weight and semi-partial correlation are also significant.\nb represents unstandardized regression weights. beta indicates the standardized regression weights. \nsr2 represents the semi-partial correlation squared. r represents the zero-order correlation.\nSquare brackets are used to enclose the lower and upper limits of a confidence interval.\n* indicates p < .05. ** indicates p < .01.\n"
 
      } else if (calculate_cor==TRUE & calculate_beta==FALSE) {
 
-          table_note <- "Note. * indicates p < .05; ** indicates p < .01.\nA significant b-weight indicates the semi-partial correlation is also significant.\nb represents unstandardized regression weights; sr2 represents the semi-partial correlation squared;\nr represents the zero-order correlation.\nSquare brackets are used to enclose the lower and upper limits of a confidence interval.\n"
+          table_note <- "Note. A significant b-weight indicates the semi-partial correlation is also significant.\nb represents unstandardized regression weights. sr2 represents the semi-partial correlation squared.\nr represents the zero-order correlation.\nSquare brackets are used to enclose the lower and upper limits of a confidence interval.\n* indicates p < .05. ** indicates p < .01.\n"
 
      } else if (calculate_cor==FALSE & calculate_beta==TRUE) {
 
-          table_note <- "Note. * indicates p < .05; ** indicates p < .01.\nA significant b-weight indicates the beta-weight and semi-partial correlation are also significant.\nb represents unstandardized regression weights; beta indicates the standardized regression weights; \nsr2 represents the semi-partial correlation squared.\nSquare brackets are used to enclose the lower and upper limits of a confidence interval.\n"
+          table_note <- "Note. A significant b-weight indicates the beta-weight and semi-partial correlation are also significant.\nb represents unstandardized regression weights. beta indicates the standardized regression weights. \nsr2 represents the semi-partial correlation squared.\nSquare brackets are used to enclose the lower and upper limits of a confidence interval.\n * indicates p < .05. ** indicates p < .01.\n"
      } else {
-          table_note <- "Note. * indicates p < .05; ** indicates p < .01.\nA significant b-weight indicates the semi-partial correlation is also significant.\nb represents unstandardized regression weights; \nsr2 represents the semi-partial correlation squared.\nSquare brackets are used to enclose the lower and upper limits of a confidence interval.\n"
+          table_note <- "Note. A significant b-weight indicates the semi-partial correlation is also significant.\nb represents unstandardized regression weights. \nsr2 represents the semi-partial correlation squared.\nSquare brackets are used to enclose the lower and upper limits of a confidence interval.\n* indicates p < .05. ** indicates p < .01.\n"
      }
      return(table_note)
 
@@ -530,18 +568,18 @@ get_reg_table_note_txt <- function(calculate_cor,calculate_beta) {
 get_reg_table_note_rtf <- function(calculate_cor,calculate_beta) {
      if (calculate_cor==TRUE & calculate_beta==TRUE) {
 
-          table_note <- "* indicates {\\i p} < .05; ** indicates {\\i p} < .01. A significant {\\i b}-weight indicates the beta-weight and semi-partial correlation are also significant. {\\i b} represents unstandardized regression weights; {\\i beta} indicates the standardized regression weights; {\\i sr\\super 2\\nosupersub} represents the semi-partial correlation squared; {\\i r} represents the zero-order correlation. {\\i LL} and {\\i UL} indicate the lower and upper limits of a confidence interval, respectively."
+          table_note <- "A significant {\\i b}-weight indicates the beta-weight and semi-partial correlation are also significant. {\\i b} represents unstandardized regression weights. {\\i beta} indicates the standardized regression weights. {\\i sr\\super 2\\nosupersub} represents the semi-partial correlation squared. {\\i r} represents the zero-order correlation. {\\i LL} and {\\i UL} indicate the lower and upper limits of a confidence interval, respectively.\\line * indicates {\\i p} < .05. ** indicates {\\i p} < .01."
 
      } else if (calculate_cor==TRUE & calculate_beta==FALSE) {
 
-          table_note <- "* indicates {\\i p} < .05; ** indicates {\\i p} < .01. A significant {\\i b}-weight indicates the semi-partial correlation is also significant. {\\i b} represents unstandardized regression weights; {\\i sr\\super 2\\nosupersub} represents the semi-partial correlation squared; {\\i r} represents the zero-order correlation. {\\i LL} and {\\i UL} indicate the lower and upper limits of a confidence interval, respectively."
+          table_note <- "A significant {\\i b}-weight indicates the semi-partial correlation is also significant. {\\i b} represents unstandardized regression weights. {\\i sr\\super 2\\nosupersub} represents the semi-partial correlation squared. {\\i r} represents the zero-order correlation. {\\i LL} and {\\i UL} indicate the lower and upper limits of a confidence interval, respectively.\\line * indicates {\\i p} < .05. ** indicates {\\i p} < .01."
 
      } else if (calculate_cor==FALSE & calculate_beta==TRUE) {
 
-          table_note <- "* indicates {\\i p} < .05; ** indicates {\\i p} < .01. A significant {\\i b}-weight indicates the beta-weight and semi-partial correlation are also significant. {\\i b} represents unstandardized regression weights; {\\i beta} indicates the standardized regression weights; {\\i sr\\super 2\\nosupersub} represents the semi-partial correlation squared. {\\i LL} and {\\i UL} indicate the lower and upper limits of a confidence interval, respectively."
+          table_note <- "A significant {\\i b}-weight indicates the beta-weight and semi-partial correlation are also significant. {\\i b} represents unstandardized regression weights. {\\i beta} indicates the standardized regression weights. {\\i sr\\super 2\\nosupersub} represents the semi-partial correlation squared. {\\i LL} and {\\i UL} indicate the lower and upper limits of a confidence interval, respectively.\\line * indicates {\\i p} < .05. ** indicates {\\i p} < .01."
 
      } else {
-          table_note <- "* indicates p < .05; ** indicates p < .01. A significant {\\i b}-weight indicates the semi-partial correlation is also significant. {\\i b} represents unstandardized regression weights; {\\i sr\\super 2\\nosupersub} represents the semi-partial correlation squared. {\\i LL} and {\\i UL} indicate the lower and upper limits of a confidence interval, respectively."
+          table_note <- "A significant {\\i b}-weight indicates the semi-partial correlation is also significant. {\\i b} represents unstandardized regression weights. {\\i sr\\super 2\\nosupersub} represents the semi-partial correlation squared. {\\i LL} and {\\i UL} indicate the lower and upper limits of a confidence interval, respectively.\\line * indicates p < .05. ** indicates p < .01."
      }
      return(table_note)
 
@@ -553,4 +591,41 @@ get_reg_table_note_rtf <- function(calculate_cor,calculate_beta) {
 convert_b_to_beta <- function(b, sd_pred,sd_crit) {
      beta_value <- b*(sd_pred / sd_crit)
      return(beta_value)
+}
+
+
+
+get_delta_R2_blocks <- function(blk2,blk1,summary2,summary1,n, prop_var_conf_level) {
+     R2_2 <- summary2$r.squared
+     R2_1 <- summary1$r.squared
+
+     deltaR2 <- R2_2 - R2_1
+     deltaR2_test <- anova(blk2,blk1)
+     deltaR2_p <- deltaR2_test$`Pr(>F)`[2]
+     deltaR2_str <- strip.leading.zero(add.sig.stars(sprintf("%1.3f",deltaR2),deltaR2_p))
+
+     deltaR2_txt <- sprintf("Delta R2 = %s", deltaR2_str)
+     deltaR2_rtf <- sprintf("\\u0916\3{\\i R\\super 2 \\nosupersub}  = %s", deltaR2_str)
+
+
+
+     deltaR2_CI <- get_deltaR2_ci(R2_2 = R2_2, R2_1 = R2_1,n=n, conf_level = prop_var_conf_level)
+     deltaR2_LL_str <- strip.leading.zero(sprintf("%1.2f",deltaR2_CI$LL))
+     deltaR2_UL_str <- strip.leading.zero(sprintf("%1.2f",deltaR2_CI$UL))
+
+
+     prop_var_conf_level_str <- sprintf("%g", round(prop_var_conf_level*100))
+     deltaR2_CI_rtf <- sprintf("{%s%% CI}[%s, %s]",prop_var_conf_level_str, deltaR2_LL_str,deltaR2_UL_str)
+     deltaR2_CI_txt <- sprintf("%s%% CI[%s, %s]",prop_var_conf_level_str, deltaR2_LL_str,deltaR2_UL_str)
+
+
+     output <- list()
+     output$deltaR2_txt    <- deltaR2_txt
+     output$deltaR2_CI_txt <- deltaR2_CI_txt
+
+     output$deltaR2_rtf <- deltaR2_rtf
+     output$deltaR2_CI_rtf <- deltaR2_CI_rtf
+     output$deltaR2        <- deltaR2
+     output$deltaR2_pvalue <- deltaR2_p
+     return(output)
 }

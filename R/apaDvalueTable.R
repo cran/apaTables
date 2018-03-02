@@ -4,7 +4,7 @@
 #' @param data Project data frame name
 #' @param filename (optional) Output filename document filename (must end in .rtf or .doc only)
 #' @param table.number Integer to use in table number output line
-#' @param show.conf.interval  (TRUE/FALSE) Display confidence intervals in table.
+#' @param show.conf.interval  (TRUE/FALSE) Display confidence intervals in table. This argument is deprecated and will be removed from later versions.
 #' @param landscape (TRUE/FALSE) Make RTF file landscape
 #' @return APA table object
 #' @examples
@@ -12,11 +12,23 @@
 #' head(viagra)
 #'
 #' # Use apa.d.table function
-#' apa.d.table(iv=dose,dv=libido,data=viagra,filename="ex1_d_table.doc")
+#' apa.d.table(iv = dose, dv = libido, data = viagra, filename = "ex1_d_table.doc")
 #' @export
-apa.d.table <- function(iv, dv, data, filename=NA, table.number=NA,show.conf.interval = TRUE, landscape=TRUE){
+apa.d.table <- function(iv, dv, data, filename=NA, table.number=NA, show.conf.interval = TRUE, landscape=TRUE){
      data <- as.data.frame(data)
      table_number <- table.number
+
+
+     if (show.conf.interval==FALSE) {
+          cat("The ability to suppress reporting of reporting confidence intervals has been deprecated in this version.\nThe function arguement show.conf.interval will be removed in a later version.\n")
+     }
+
+     if (requireNamespace("MBESS", quietly = TRUE)) {
+          show.conf.interval = TRUE
+     } else {
+          show.conf.interval = FALSE
+     }
+
      show_conf_interval <- show.conf.interval
 
      if (is.na(filename)) {
@@ -83,7 +95,15 @@ apa.d.table <- function(iv, dv, data, filename=NA, table.number=NA,show.conf.int
                     output_row_descriptives[c_row,2] <- group1_sd
 
                     cur_d_value <- get_d_value(group1_data, group2_data)
-                    cur_d_ci <- MBESS::ci.smd(smd=cur_d_value, n.1=group1_n, n.2=group2_n)
+
+                    if (requireNamespace("MBESS", quietly = TRUE) == TRUE) {
+                         cur_d_ci <- MBESS::ci.smd(smd=cur_d_value, n.1=group1_n, n.2=group2_n)
+                    } else {
+                         cur_d_ci <- list()
+                         cur_d_ci$Lower.Conf.Limit.smd <- (-99)
+                         cur_d_ci$Upper.Conf.Limit.smd <- (-99)
+                    }
+
                     my_t_test_results <- t.test(x=group1_data, y=group2_data, alternative="two.sided", var.equal = TRUE)
                     cur_t_p_value <- my_t_test_results$p.value
 
@@ -169,9 +189,9 @@ apa.d.table <- function(iv, dv, data, filename=NA, table.number=NA,show.conf.int
 
      #make console output
      if (show_conf_interval==TRUE) {
-          table_note <- "Note. M and SD are used to represent mean and standard deviation, respectively.\nValues in square brackets indicate the 95% confidence interval for each d-value. \nThe confidence interval is a plausible range of population d-values \nthat could have caused the sample d-value (Cumming, 2014). \nd-values are estimates calculated using formulas 4.18 and 4.19 \nfrom Borenstein, Hedges, Higgins, & Rothstein (2009). \nd-values not calculated if unequal variances prevented pooling.\n"
+          table_note <- "Note. M indicates mean. SD indicates standard deviation. d-values are estimates calculated using formulas 4.18 and 4.19\nfrom Borenstein, Hedges, Higgins, & Rothstein (2009). d-values not calculated if unequal variances prevented pooling.\nValues in square brackets indicate the 95% confidence interval for each d-value. \nThe confidence interval is a plausible range of population d-values \nthat could have caused the sample d-value (Cumming, 2014). \n"
      } else {
-          table_note <- "Note. M and SD are used to represent mean and standard deviation, respectively.\nd-values are estimates calculated using formulas 4.18 and 4.19 \nfrom Borenstein, Hedges, Higgins, & Rothstein (2009). \nd-values not calculated if unequal variances prevented pooling.\n"
+          table_note <- "Note. M indicates mean. SD indicates standard deviation. d-values are estimates calculated using formulas 4.18 and 4.19\nfrom Borenstein, Hedges, Higgins, & Rothstein (2009). d-values not calculated if unequal variances prevented pooling.\n"
      }
      tbl_console <- list(table.number = table_number,
                          table.title = table_title,
@@ -190,11 +210,11 @@ apa.d.table <- function(iv, dv, data, filename=NA, table.number=NA,show.conf.int
 
           if (show_conf_interval==TRUE) {
                table_title <- "Means, standard deviations, and d-values with confidence intervals"
-               table_note <- "{\\i M} and {\\i SD} are used to represent mean and standard deviation, respectively. Values in square brackets indicate the 95% confidence interval for each {\\i d}-value The confidence interval is a plausible range of population {\\i d}-values that could have caused the sample {\\i d}-value (Cumming, 2014). {\\i d}-values are estimates calculated using formulas 4.18 and 4.19 from Borenstein, Hedges, Higgins, & Rothstein (2009).  {\\i d}-values not calculated if unequal variances prevented pooling."
+               table_note <- "{\\i M} indicates mean. {\\i SD} indicates standard deviation. {\\i d}-values are estimates calculated using formulas 4.18 and 4.19 from Borenstein, Hedges, Higgins, & Rothstein (2009). {\\i d}-values not calculated if unequal variances prevented pooling. Values in square brackets indicate the 95% confidence interval for each {\\i d}-value The confidence interval is a plausible range of population {\\i d}-values that could have caused the sample {\\i d}-value (Cumming, 2014)."
 
           } else {
                table_title <- "Means, standard deviations, and d-values"
-               table_note <- "{\\i M} and {\\i SD} are used to represent mean and standard deviation, respectively. {\\i d}-values are estimates calculated using formulas 4.18 and 4.19 from Borenstein, Hedges, Higgins, & Rothstein (2009). {\\i d}-values not calculated if unequal variances prevented pooling."
+               table_note <- "{\\i M} indicates mean. {\\i SD} indicates standard deviation. {\\i d}-values are estimates calculated using formulas 4.18 and 4.19 from Borenstein, Hedges, Higgins, & Rothstein (2009). {\\i d}-values not calculated if unequal variances prevented pooling."
           }
 
           #Create RTF code

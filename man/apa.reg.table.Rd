@@ -4,7 +4,8 @@
 \alias{apa.reg.table}
 \title{Creates a regresion table in APA style}
 \usage{
-apa.reg.table(..., filename = NA, table.number = NA)
+apa.reg.table(..., filename = NA, table.number = NA,
+  prop.var.conf.level = 0.95)
 }
 \arguments{
 \item{...}{Regression (i.e., lm) result objects. Typically, one for each block in the regression.}
@@ -12,6 +13,8 @@ apa.reg.table(..., filename = NA, table.number = NA)
 \item{filename}{(optional) Output filename document filename (must end in .rtf or .doc only)}
 
 \item{table.number}{Integer to use in table number output line}
+
+\item{prop.var.conf.level}{Level of confidence (.90 or .95, default .95) for interval around sr2, R2, and Delta R2. Use of .90 confidence level helps to create consistency between the CI overlapping with zero and conclusions based on the p-value for that block (or block difference).}
 }
 \value{
 APA table object
@@ -54,4 +57,7 @@ apa.reg.table(blk1,filename="exInteraction3.doc")
 sr2 and delta R2 confidence intervals calculated via:
 
 Alf Jr, E. F., & Graf, R. G. (1999). Asymptotic confidence limits for the difference between two squared multiple correlations: A simplified approach. Psychological Methods, 4(1), 70.
+
+Note that Algina, Keselman, & Penfield (2008) found this approach can under some circumstances lead to inaccurate CIs on proportion of variance values.
+You might consider using the Algina, Keselman, & Penfield (2008) approach via the apa.reg.boot.table function
 }

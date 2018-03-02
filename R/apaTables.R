@@ -9,14 +9,15 @@
 #'   \item Correlation tables - Correlation tables (with confidence intervals and descriptive statistics) are created from data frames using \code{\link{apa.cor.table}}.
 #'   \item Single "block" regression tables - Single "block" regression tables are created from a regression object using \code{\link{apa.reg.table}}.
 #'   \item Multiple "block" regression tables - Multiple "block" regression tables are created from regression objects using \code{\link{apa.reg.table}}.
-#'   \item ANOVA tables - An ANOVA F-table can be created via \code{\link{apa.aov.table}} from a regression object (i.e. lm output). Cell mean/standard deviation tables for 1- and 2-way designs are created from data frames using \code{\link{apa.1way.table}} and \code{\link{apa.2way.table}}.
+#'   \item ANOVA tables - An ANOVA F-table can be created via \code{\link{apa.aov.table}} from a regression object (i.e. lm output or aov output). Cell mean/standard deviation tables for 1- and 2-way designs are created from data frames using \code{\link{apa.1way.table}} and \code{\link{apa.2way.table}}.
+#'   \item ezANOVA tables from ez package - An ANOVA F-table from ezANOVA output can be created via \code{\link{apa.ezANOVA.table}}.
 #'   \item Standardized mean difference (i.e., \emph{d}-value) tables (with confidence intervals and descriptive statistics) illustrating all possible paired comparisons using a single independent variable are created from data frames using \code{\link{apa.d.table}}.
 #'  }
 #'\tabular{ll}{
 #'Package: \tab apaTables\cr
 #'Type: \tab Package\cr
-#'Version: \tab 1.5.1\cr
-#'Date: \tab 2017-06-20\cr
+#'Version: \tab 2.0.2\cr
+#'Date: \tab 2018-03-01\cr
 #'License: \tab MIT\cr
 #'}
 #'
@@ -35,7 +36,7 @@
 #'@importFrom "dplyr" "mutate" "select"
 #'@importFrom "broom" "glance" "tidy"
 #'@importFrom "stats" "qnorm" "rnorm" "lm"
-utils::globalVariables(c("difference", "predictor","SE","p"))
+utils::globalVariables(c("difference", "predictor","SE","p", "DFd","DFn","Effect","GGe","HFe","SSd","SSn","ges"))
 NULL
 
 
@@ -223,7 +224,8 @@ table_without_intercept_row <- function(df) {
 
      #make table without intercept
      if (is_intercept==FALSE) {
-          df_results <- df
+          df_lower_table <- df
+          df_first_row <- NULL
      } else {
           num_table_rows <- dim(df)[1]
           df_lower_table <- df[2:num_table_rows,]
@@ -286,34 +288,3 @@ add_row_to_model_summary <- function(df) {
      return(df)
 }
 
-
-get_delta_R2_blocks <- function(blk2,blk1,summary2,summary1,n) {
-     R2_2 <- summary2$r.squared
-     R2_1 <- summary1$r.squared
-
-     deltaR2 <- R2_2 - R2_1
-     deltaR2_test <- anova(blk2,blk1)
-     deltaR2_p <- deltaR2_test$`Pr(>F)`[2]
-     deltaR2_str <- strip.leading.zero(add.sig.stars(sprintf("%1.2f",deltaR2),deltaR2_p))
-
-     deltaR2_txt <- sprintf("Delta R2 = %s", deltaR2_str)
-     deltaR2_rtf <- sprintf("\\u0916\3{\\i R\\super 2 \\nosupersub}  = %s", deltaR2_str)
-
-
-
-     deltaR2_CI <- get_deltaR2_ci(R2_2 = R2_2, R2_1 = R2_1,n=n)
-     deltaR2_LL_str <- strip.leading.zero(sprintf("%1.2f",deltaR2_CI$LL))
-     deltaR2_UL_str <- strip.leading.zero(sprintf("%1.2f",deltaR2_CI$UL))
-     deltaR2_CI_rtf <- sprintf("{95%% CI}[%s, %s]",deltaR2_LL_str,deltaR2_UL_str)
-     deltaR2_CI_txt <- sprintf("95%% CI[%s, %s]",deltaR2_LL_str,deltaR2_UL_str)
-
-
-     output <- list()
-     output$deltaR2_txt    <- deltaR2_txt
-     output$deltaR2_CI_txt <- deltaR2_CI_txt
-
-     output$deltaR2_rtf <- deltaR2_rtf
-     output$deltaR2_CI_rtf <- deltaR2_CI_rtf
-
-     return(output)
-}
