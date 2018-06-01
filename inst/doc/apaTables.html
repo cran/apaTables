@@ -12,7 +12,7 @@
 
 <meta name="author" content="David J. Stanley and Jeffrey R. Spence, University of Guelph" />
 
-<meta name="date" content="2018-03-01" />
+<meta name="date" content="2018-06-01" />
 
 <title>apaTables</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">apaTables</h1>
 <h4 class="author"><em>David J. Stanley and Jeffrey R. Spence, University of Guelph</em></h4>
-<h4 class="date"><em>2018-03-01</em></h4>
+<h4 class="date"><em>2018-06-01</em></h4>
 
 
 
@@ -176,7 +176,7 @@ lm_output &lt;-<span class="st"> </span><span class="kw">lm</span>(attractivenes
 </div>
 <p>You can use the <em>tidyverse</em> package to conducted paired comparisons within each gender again using <strong>apa.d.table</strong>; see Tables 9 and 10.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(apaTables)
-<span class="kw">library</span>(tidyverse)
+<span class="kw">library</span>(dplyr)
 goggles.men   &lt;-<span class="st"> </span><span class="kw">filter</span>(goggles,gender<span class="op">==</span><span class="st">&quot;Male&quot;</span>)
 goggles.women &lt;-<span class="st"> </span><span class="kw">filter</span>(goggles,gender<span class="op">==</span><span class="st">&quot;Female&quot;</span>)
 
