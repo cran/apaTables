@@ -4,8 +4,15 @@
 \alias{apa.d.table}
 \title{Creates a d-values for all paired comparisons in APA style}
 \usage{
-apa.d.table(iv, dv, data, filename = NA, table.number = NA,
-  show.conf.interval = TRUE, landscape = TRUE)
+apa.d.table(
+  iv,
+  dv,
+  data,
+  filename = NA,
+  table.number = NA,
+  show.conf.interval = TRUE,
+  landscape = TRUE
+)
 }
 \arguments{
 \item{iv}{Name of independent variable column in data frame for all paired comparisons}
@@ -29,9 +36,11 @@ APA table object
 Creates a d-values for all paired comparisons in APA style
 }
 \examples{
+\dontrun{
 # View top few rows of viagra data set from Discovering Statistics Using R
 head(viagra)
 
 # Use apa.d.table function
 apa.d.table(iv = dose, dv = libido, data = viagra, filename = "ex1_d_table.doc")
+}
 }

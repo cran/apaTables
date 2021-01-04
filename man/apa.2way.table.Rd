@@ -4,9 +4,17 @@
 \alias{apa.2way.table}
 \title{Creates a table of means and standard deviations for a 2-way ANOVA design in APA style}
 \usage{
-apa.2way.table(iv1, iv2, dv, data, filename = NA, table.number = NA,
-  show.conf.interval = FALSE, show.marginal.means = FALSE,
-  landscape = TRUE)
+apa.2way.table(
+  iv1,
+  iv2,
+  dv,
+  data,
+  filename = NA,
+  table.number = NA,
+  show.conf.interval = FALSE,
+  show.marginal.means = FALSE,
+  landscape = TRUE
+)
 }
 \arguments{
 \item{iv1}{Name of independent variable 1 column in data frame}
@@ -34,9 +42,11 @@ APA table object
 Creates a table of means and standard deviations for a 2-way ANOVA design in APA style
 }
 \examples{
+\dontrun{
 # Example 2: 2-way from Fidler & Thompson (2001)
 apa.2way.table(iv1=a,iv2=b,dv=dv,data=fidler_thompson,landscape=TRUE, filename="ex2_desc_table.doc")
 
 # Example 3: 2-way from Field et al. (2012) Discovery Statistics Using R
 apa.2way.table(iv1=gender,iv2=alcohol,dv=attractiveness,data=goggles,filename="ex3_desc_table.doc")
+}
 }

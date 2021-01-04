@@ -2,7 +2,7 @@
 #'
 #'  Bugs and feature requests can be reported at: \url{https://github.com/dstanley4/apaTables/issues}
 #'
-#' A package overview can be obtained using the command: \code{vignette("apaTables")}
+#'  Tutorial at: \url{https://dstanley4.github.io/apaTables/articles/apaTables.html}
 #'
 #'    Currently, the following tables can be created:
 #' \itemize{
@@ -16,8 +16,8 @@
 #'\tabular{ll}{
 #'Package: \tab apaTables\cr
 #'Type: \tab Package\cr
-#'Version: \tab 2.0.5\cr
-#'Date: \tab 2018-08-29\cr
+#'Version: \tab 2.0.8\cr
+#'Date: \tab 2020-12-18\cr
 #'License: \tab MIT\cr
 #'}
 #'
@@ -36,7 +36,7 @@
 #'@importFrom "dplyr" "mutate" "select"
 #'@importFrom "broom" "glance" "tidy"
 #'@importFrom "stats" "qnorm" "rnorm" "lm"
-utils::globalVariables(c("difference", "predictor","SE","p", "DFd","DFn","Effect","GGe","HFe","SSd","SSn","ges"))
+utils::globalVariables(c("difference", "predictor","SE","p", "DFd","DFn","Effect","GGe","HFe","SSd","SSn","ges","r","beta_CI"))
 NULL
 
 
@@ -64,11 +64,13 @@ txt.ci<- function(cortest.result,strip_zero=TRUE) {
 }
 
 
-txt.r <- function(ctest) {
+txt.r <- function(ctest, show_stars = TRUE) {
      r.value=ctest$estimate
      p.value=ctest$p.value
      r.value.txt <- strip.leading.zero(sprintf("%1.2f", r.value))
-     r.value.txt <- add.sig.stars(r.value.txt,p.value)
+     if (show_stars == TRUE) {
+             r.value.txt <- add.sig.stars(r.value.txt,p.value)
+     }
      string.out=sprintf("%s",r.value.txt)
      return(string.out)
 }

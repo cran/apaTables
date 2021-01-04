@@ -3,26 +3,32 @@
 #' @param filename (optional) Output filename document filename (must end in .rtf or .doc only)
 #' @param table.number  Integer to use in table number output line
 #' @param show.conf.interval  (TRUE/FALSE) Display confidence intervals in table. This argument is deprecated and will be removed from later versions.
+#' @param show.sig.stars  (TRUE/FALSE) Display stars for significance in table.
 #' @param landscape (TRUE/FALSE) Make RTF file landscape
 #' @return APA table object
 #' @examples
+#' \dontrun{
 #' # View top few rows of attitude data set
 #' head(attitude)
 #'
 #' # Use apa.cor.table function
 #' apa.cor.table(attitude)
 #' apa.cor.table(attitude, filename="ex.CorTable1.doc")
+#' }
 #' @export
-apa.cor.table<-function(data,filename=NA,table.number=NA, show.conf.interval=TRUE,landscape=TRUE) {
+apa.cor.table<-function(data, filename = NA, table.number = NA, show.conf.interval = TRUE, show.sig.stars = TRUE, landscape = TRUE) {
 
+     # test git tower April 23
      data <- as.data.frame(data)
      table_number <- table.number
 
      if (show.conf.interval==FALSE) {
           cat("The ability to suppress reporting of reporting confidence intervals has been deprecated in this version.\nThe function argument show.conf.interval will be removed in a later version.\n")
      }
+
      show.conf.interval = TRUE
      show_conf_interval <- show.conf.interval
+     show_stars <- show.sig.stars
 
      if (is.na(filename)) {
           make_file_flag <- FALSE
@@ -58,7 +64,7 @@ apa.cor.table<-function(data,filename=NA,table.number=NA, show.conf.interval=TRU
                     x <- data[,i]
                     y <- data[,j]
                     ctest      <- cor.test(x, y)
-                    cor_string <- txt.r(ctest)
+                    cor_string <- txt.r(ctest, show_stars)
                     output_cor[i,j]     <- cor_string
                     output_cor_rtf[i,j] <- cor_string
 
@@ -129,9 +135,13 @@ apa.cor.table<-function(data,filename=NA,table.number=NA, show.conf.interval=TRU
 
      #make console output
      if (show_conf_interval == TRUE) {
-          table_note <- "Note. M and SD are used to represent mean and standard deviation, respectively.\nValues in square brackets indicate the 95% confidence interval.\nThe confidence interval is a plausible range of population correlations \nthat could have caused the sample correlation (Cumming, 2014).\n* indicates p < .05. ** indicates p < .01.\n"
+          table_note <- "Note. M and SD are used to represent mean and standard deviation, respectively.\nValues in square brackets indicate the 95% confidence interval.\nThe confidence interval is a plausible range of population correlations \nthat could have caused the sample correlation (Cumming, 2014).\n"
      } else {
-          table_note <- "Note. M and SD are used to represent mean and standard deviation, respectively.\n* indicates p < .05. ** indicates p < .01.\n"
+          table_note <- "Note. M and SD are used to represent mean and standard deviation, respectively.\n"
+     }
+
+     if (show_stars == TRUE) {
+             table_note <- paste(table_note, "* indicates p < .05. ** indicates p < .01.\n")
      }
 
      tbl.console <- list(table.number = table_number,
@@ -151,12 +161,17 @@ apa.cor.table<-function(data,filename=NA,table.number=NA, show.conf.interval=TRU
 
           if (show_conf_interval == TRUE) {
                table_title <- "Means, standard deviations, and correlations with confidence intervals"
-               table_note <- "{\\i M} and {\\i SD} are used to represent mean and standard deviation, respectively. Values in square brackets indicate the 95% confidence interval for each correlation. The confidence interval is a plausible range of population correlations that could have caused the sample correlation (Cumming, 2014). * indicates {\\i p} < .05. ** indicates {\\i p} < .01."
+               table_note <- "{\\i M} and {\\i SD} are used to represent mean and standard deviation, respectively. Values in square brackets indicate the 95% confidence interval for each correlation. The confidence interval is a plausible range of population correlations that could have caused the sample correlation (Cumming, 2014)."
 
           } else {
                table_title <- "Means, standard deviations, and correlations"
-               table_note <- "{\\i M} and {\\i SD} are used to represent mean and standard deviation, respectively. * indicates {\\i p} < .05. ** indicates {\\i p} < .01. "
+               table_note <- "{\\i M} and {\\i SD} are used to represent mean and standard deviation, respectively."
           }
+
+          if (show_stars == TRUE) {
+                  table_note <- paste(table_note, "* indicates {\\i p} < .05. ** indicates {\\i p} < .01.")
+          }
+
 
           #Create RTF code
           rtfTable <- RtfTable$new(isHeaderRow=TRUE)
